@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <?define UpgradeCode = {9BE5542F-6F52-4124-B3DD-3087F10701F1} ?>
+  <?define Manufacturer = "Anthem Inc" ?>
+  <?define ProductName = LTSSService ?>
+  <?define PreReq = ../PreReq?>
+  <Bundle Name="$(var.ProductName)" Version="$(var.ProductVer)" Manufacturer="$(var.Manufacturer)" UpgradeCode="$(var.UpgradeCode)">
+    
+    <BootstrapperApplicationRef Id="WixStandardBootstrapperApplication.HyperlinkLicense">
+      <bal:WixStandardBootstrapperApplication
+        LicenseUrl=""
+        xmlns:bal="http://schemas.microsoft.com/wix/BalExtension"
+        SuppressOptionsUI="yes"  SuppressRepair="yes" />
+    </BootstrapperApplicationRef>
+    
+    <Chain>
+      <!-- TODO: Define the list of chained packages. -->
+      <PackageGroupRef Id="JavaPackage"/>
+      <MsiPackage SourceFile="LTSSInstaller.msi"/>
+      
+    </Chain>
+  
+  </Bundle>
+
+  <Fragment>
+    <PackageGroup Id="JavaPackage">
+      <ExePackage Id="java"
+                  SourceFile="$(var.PreReq)/JavaSetup8u101.exe"
+                  InstallCondition="JAVA_CURRENT_VERSION &lt;= v1.8"
+                  Permanent="yes"
+                  PerMachine="yes"
+                  InstallCommand="/s /REBOOT=Suppress"/>
+    </PackageGroup>
+
+    <Property Id="JAVA_CURRENT_VERSION">
+      <RegistrySearch Id="JRE_KEY" Root="HKLM" Key="SOFTWARE\JavaSoft\Java Runtime Environment" Name="CurrentVersion" Type="raw"  />
+    </Property>
+    
+  </Fragment>
+</Wix>

@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <?define UpgradeCode = {9BE5542F-6F52-4124-B3DD-3087F10701F1} ?>
+  <?define Manufacturer = "Anthem Inc" ?>
+  <?define ProductName = "LTSSService" ?>
+  <?define ResourceDir = "./Resources/"?>
+
+  <Product Id='*' Name='$(var.ProductName)' Language="1033" Version="$(var.ProductVer)" Manufacturer='$(var.Manufacturer)' UpgradeCode='$(var.UpgradeCode)'>
+    <Package Id='*' InstallerVersion="200" Compressed="yes" InstallScope="perMachine" Description="$(var.ProductName) $(var.ProductVer)" />
+
+    <Upgrade Id="$(var.UpgradeCode)">
+      <UpgradeVersion Property="PREVIOUSVERSIONSINSTALLED" OnlyDetect="no" IncludeMaximum="yes" IncludeMinimum="yes" Maximum="$(var.ProductVer)" Minimum="1.0.0" ></UpgradeVersion>
+    </Upgrade>
+
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+    <Media Id='1' Cabinet='Sample.cab' EmbedCab='yes' />
+
+
+    <SetProperty Id="URL" Value="http://localhost:8080/sample/" Sequence="execute"  Before="CreateShortcuts" />
+
+
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFiles64Folder">
+        <Directory Id="LTSSOfflineDirectory" Name="$(var.ProductName)">
+          <Directory Id="MongoDB" Name="MongoDB">
+            <Directory Id="MongoDBbin" Name="bin">
+              <Component Id="cmpMongoService" Guid="370AC9BE-59FC-4DEC-952C-A708593D194B">
+                <File Id="MongoService" KeyPath="yes" Source="$(var.ResourceDir)\MongoService.bat" />
+              </Component>
+            </Directory>
+          </Directory>
+          <Directory Id="Tomcat" Name="Tomcat">
+            <Directory Id="TomcatWebapps" Name="webapps">
+              <Component Id="cmpWar" Guid="15398E7B-F6D1-4C79-B6EA-09D31CAD8BF9">
+                <File Id="war" KeyPath="yes" Source="$(var.ResourceDir)\sample.war" />
+              </Component>
+            </Directory>
+            <Directory Id="TomcatBin" Name="bin">
+              <Component Id="cmpTomcatService" Guid="AC8217A1-90C6-4269-94B2-EB0F05859A1D">
+                <File Id="TomcatService" KeyPath="yes" Source="$(var.ResourceDir)\TomcatService.bat" />
+              </Component>
+            </Directory>
+          </Directory>
+        </Directory>
+      </Directory>
+
+      <!-- Program Menu Pointer -->
+      <Directory Id="ProgramMenuFolder">
+        <Directory Id="ProgramMenuSubfolder" Name="$(var.ProductName)">
+          <Component Id="LTSSProgramMenuShortcut" Guid="30622891-36DC-4A68-A167-486D89FFDF3A">
+            <Shortcut Id="ProgramMenuShortcut" Name="$(var.ProductName)" Description="LTSS Offline" Target="[URL]" Icon="ProgramMenuShortcutIcon">
+              <Icon Id="ProgramMenuShortcutIcon" SourceFile="$(var.ResourceDir)\Icon.ico" />
+            </Shortcut>
+            <RegistryValue Root="HKCU" Key="Software\[Manufacturer]\[ProductName]" Name="installed" Type="integer" Value="1" KeyPath="yes"/>
+            <RemoveFile Id="ProgramMenuShortcutRemove" Name="$(var.ProductName)"  On="uninstall"/>
+            <RemoveFolder Id="ProgramMenuSubfolderRemove" Directory="ProgramMenuSubfolder"  On="uninstall"/>
+          </Component>
+        </Directory>
+      </Directory>
+
+      <!--DesktopFolder-->
+      <Directory Id="DesktopFolder" Name="Desktop">
+        <Component Id="LTSSDesktopShortcut" Guid="9954588E-0508-4BE2-AA43-52DBADFD0C04">
+          <Shortcut Id="DesktopShortcut" Name="$(var.ProductName)" Description="LTSS Offline" Target="[URL]" Icon="DesktopShortcutIcon">
+            <Icon Id="DesktopShortcutIcon" SourceFile="$(var.ResourceDir)\Icon.ico" />
+          </Shortcut>
+          <RegistryValue Root="HKCU" Key="Software\[Manufacturer]\[ProductName]" Name="installed" Type="integer" Value="1" KeyPath="yes"/>
+          <RemoveFile Id="DesktopShortcutRemove" Name="$(var.ProductName)" On="uninstall"/>
+        </Component>
+      </Directory>
+    </Directory>
+
+    <DirectoryRef Id="TARGETDIR">
+      <Component Id="cmpJava" Guid="320EE6A2-1795-4BB0-993F-0CB7D527134D">
+        <Environment Id="javaPath" Action="set" Name="PATH" Value ="[JAVAPATH]" Part="last" Permanent="yes" System="yes"/>
+      </Component>
+    </DirectoryRef>
+
+    <Property Id="MONGOSERVICEEXISTS">
+      <RegistrySearch Id="RegMongoServiceExists" Key="SYSTEM\CurrentControlSet\Services\MongoDB" Name="ImagePath" Root="HKLM" Type="raw" />
+    </Property>
+    <Property Id="TOMCATSERVICEEXISTS">
+      <RegistrySearch Id="RegTomcatServiceExists" Key="SYSTEM\CurrentControlSet\Services\LTSSOfflineServer" Name="ImagePath" Root="HKLM" Type="raw" />
+    </Property>
+    <Property Id="JAVACURRENTVERSION">
+      <RegistrySearch Id="RegJavaVersion" Key="SOFTWARE\JavaSoft\Java Runtime Environment" Name="CurrentVersion" Root="HKLM" Type="raw" />
+    </Property>
+    <Property Id="JAVAPATH">
+      <RegistrySearch Id="RegJavaPath" Key="SOFTWARE\JavaSoft\Java Runtime Environment\[JAVACURRENTVERSION]" Name="JavaHome" Root="HKLM" Type="raw" />
+    </Property>
+    
+    <Feature Id="LTSSCore" Title="ltss_Core" Level="1">
+      <ComponentRef Id="LTSSProgramMenuShortcut"/>
+      <ComponentRef Id="LTSSDesktopShortcut"/>
+    </Feature>
+
+    <Feature Id="TomcatFeature" Title="TomcatFeature" Level="0" Absent="allow">
+      <ComponentRef Id="cmpWar" />
+      <ComponentRef Id="cmpTomcatService" />
+      <ComponentGroupRef Id="cg_Tomcat"/>
+      <Condition Level="1"><![CDATA[(NOT Installed) OR (NOT TOMCATSERVICEEXISTS)]]></Condition>
+    </Feature>
+
+    <Feature Id="MongoDBFeature" Title="MongoDBFeature" Level="0" Absent="allow">
+      <ComponentRef Id="cmpMongoService" />
+      <ComponentGroupRef Id="cg_MongoDB"/>
+      <Condition Level="1"><![CDATA[(NOT Installed) OR (NOT MONGOSERVICEEXISTS)]]></Condition>
+    </Feature>
+
+    <Feature Id="JavaFeature" Title="JavaFeature" Level="0" Absent="allow">
+      <ComponentRef Id="cmpJava"/>
+      <Condition Level="1"><![CDATA[(NOT Installed) AND (JAVACURRENTVERSION >= v1.8)]]></Condition>
+    </Feature>
+
+    <!-- Install and start Tomcat as Windows Service -->
+    <CustomAction Id="TomcatServiceInstallStart" Return="check" Impersonate="no" Directory="dirBC6AA611610C141AB34A7534AE6E759E" Execute="deferred"
+					  ExeCommand="cmd.exe /c &quot;TomcatService.bat start LTSSOfflineServer&quot;"/>
+
+    <!-- Install and start MongoDB as Windows Service -->
+    <CustomAction Id="MongoSeviceInstallStart" Return="check" Impersonate="no" Directory="MongoDBbin" Execute="deferred"
+             ExeCommand="cmd.exe /c &quot;MongoService.bat start&quot;"/>
+
+    <!--Action to execute before uninstalling the product-->
+    <!-- Stop the Tomcat Server as Windows Service-->
+    <CustomAction Id="TomcatServiceStopUninstall" Directory="dirBC6AA611610C141AB34A7534AE6E759E" Execute="deferred" Impersonate="no"
+					  ExeCommand="cmd.exe /c &quot;TomcatService.bat stop LTSSOfflineServer&quot;" />
+
+    <!-- UnInstall Mongo as Windows Service -->
+    <CustomAction Id="MongoServiceStopUnInstall" Return="check" Impersonate="no" Directory="MongoDBbin" Execute="deferred"
+             ExeCommand="cmd.exe /c &quot;MongoService.bat stop&quot;"/>
+    <!--END-->
+    <!--remove all the folders-->
+    <CustomAction Id="DeleteFolders" Return="check" Impersonate="no" Directory="ProgramFiles64Folder" Execute="deferred"
+            ExeCommand="cmd.exe /c &quot;rmdir /Q /S $(var.ProductName)&quot;"/>
+
+    <!-- Execution Sequence-->
+    <InstallExecuteSequence>
+      <!--Install custom actions-->
+      <Custom Action="MongoSeviceInstallStart" Before="InstallFinalize">(NOT Installed) AND (NOT MONGOSERVICEEXISTS) AND (NOT UPGRADINGPRODUCTCODE)</Custom>
+      <Custom Action="TomcatServiceInstallStart" After="MongoSeviceInstallStart">(NOT Installed) AND (NOT TOMCATSERVICEEXISTS) AND (NOT UPGRADINGPRODUCTCODE)</Custom>
+
+      <!--Uninstall custom actions-->
+      <!--RemoveFiles is the action for removing the files during uninstall-->
+      <Custom Action="MongoServiceStopUnInstall" Before="RemoveFiles">(Installed) AND (MONGOSERVICEEXISTS) AND (NOT UPGRADINGPRODUCTCODE)</Custom>
+      <Custom Action="TomcatServiceStopUninstall" After="MongoServiceStopUnInstall">(Installed) AND (TOMCATSERVICEEXISTS) AND (NOT UPGRADINGPRODUCTCODE)</Custom>
+
+
+      <!--custom action to delete all the files and folders created without knowing to the MSI installer-->
+      <Custom Action="DeleteFolders" Before="InstallFinalize">(Installed) AND (NOT UPGRADINGPRODUCTCODE)</Custom>
+    </InstallExecuteSequence>
+
+  </Product>
+</Wix>
