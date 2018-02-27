@@ -4,7 +4,7 @@
   <?define Manufacturer = "Anthem Inc" ?>
   <?define ProductName = LTSSService ?>
   <?define PreReq = ../PreReq?>
-  <Bundle Name="$(var.ProductName)" Version="$(var.ProductVer)" Manufacturer="$(var.Manufacturer)" UpgradeCode="$(var.UpgradeCode)">
+  <Bundle  Name="$(var.ProductName)" Version="$(var.ProductVer)" Manufacturer="$(var.Manufacturer)" UpgradeCode="$(var.UpgradeCode)">
     
     <BootstrapperApplicationRef Id="WixStandardBootstrapperApplication.HyperlinkLicense">
       <bal:WixStandardBootstrapperApplication
@@ -25,7 +25,7 @@
   <Fragment>
     <PackageGroup Id="JavaPackage">
       <ExePackage Id="java"
-                  SourceFile="$(var.PreReq)/JavaSetup8u101.exe"
+                  SourceFile="$(var.PreReq)/JavaSetup.exe"
                   InstallCondition="JAVA_CURRENT_VERSION &lt;= v1.8"
                   Permanent="yes"
                   PerMachine="yes"

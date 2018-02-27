@@ -7,6 +7,7 @@ SET PRODUCTVER=%VERSION%
 
 REM start clean, delete any previous staging folderS
 rmdir /Q /S staging
+rmdir /Q /S target
 
 mkdir staging
 mkdir target

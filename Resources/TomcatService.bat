@@ -13,14 +13,16 @@ GOTO EOF
 )
 
 :Start
-service.bat install %ServiceName%
-sc config %ServiceName% start= auto
+call service.bat install %ServiceName%
+rem sc config %ServiceName% start= auto
 sc start %ServiceName%
 echo "Tomcat service installed and started"
+GOTO EOF
 
 :Stop
 sc stop %ServiceName%
-service.bat uninstall %ServiceName%
+call service.bat uninstall %ServiceName%
 echo "Tomcat Service stopped and removed"
+GOTO EOF
 
 :EOF
