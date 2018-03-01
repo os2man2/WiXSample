@@ -4,7 +4,7 @@
   <?define Manufacturer = "Anthem Inc" ?>
   <?define ProductName = LTSSService ?>
   <?define PreReq = ../PreReq?>
-  <Bundle  Name="$(var.ProductName)" Version="$(var.ProductVer)" Manufacturer="$(var.Manufacturer)" UpgradeCode="$(var.UpgradeCode)">
+  <Bundle  Name="!(bind.packageName.LTSSInstaller)" Version="!(bind.packageVersion.LTSSInstaller)" Manufacturer="!(bind.packageManufacturer.LTSSInstaller)" UpgradeCode="$(var.UpgradeCode)">
     
     <BootstrapperApplicationRef Id="WixStandardBootstrapperApplication.HyperlinkLicense">
       <bal:WixStandardBootstrapperApplication
@@ -16,7 +16,7 @@
     <Chain>
       <!-- TODO: Define the list of chained packages. -->
       <PackageGroupRef Id="JavaPackage"/>
-      <MsiPackage SourceFile="LTSSInstaller.msi"/>
+      <MsiPackage Id="LTSSInstaller" SourceFile="LTSSInstaller.msi"/> <!--bind variables refer to the Id atrribute.-->
       
     </Chain>
   
