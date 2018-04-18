@@ -1,8 +1,7 @@
 @echo off
 
 REM variable %1 value comes from bomboo
-rem SET VERSION=%1  
-SET VERSION=1.0.0  
+SET VERSION=%1  
 SET PRODUCTVER=%VERSION%
 
 REM start clean, delete any previous staging folderS
@@ -31,7 +30,7 @@ candle -arch x64 -dMongoDBDir=staging\MongoDB staging\MongoDB.wxs -out staging\M
 REM Combine multiple .wixobj files into libraries that can be consumed by Light; output to staging\complete.wixobg
 lit -ext WixUIExtension -ext WixNetFxExtension staging\Product.wixobj staging\MongoDB.wixobj staging\Tomcat.wixobj -out staging\complete.wixobj
  
-light -out staging\LTSSInstaller.msi staging\complete.wixobj
+light -ext WixUIExtension -out staging\LTSSInstaller.msi staging\complete.wixobj
 
 candle -ext WixBalExtension -arch x64 -dProductVer=%PRODUCTVER% LTSSBootstrapper\Bundle.wxs -out staging\Bundle.wixobj
 

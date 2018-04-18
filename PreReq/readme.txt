@@ -1,0 +1,1 @@
+copy the pre requisites to this folder. This folder is refereneced in setup file.
